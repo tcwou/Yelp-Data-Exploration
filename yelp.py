@@ -12,13 +12,18 @@ def create_connection(db_file):
         print(e)
     return None
 
-def populate_db(conn, row):
+def populate_table_business(conn, row):
     s = ''' INSERT INTO business(business_id, name, address, city, state, postal_code, latitude, longitude, stars,
-            review_count, is_open, attributes, categories, hours)
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) '''
+            review_count, is_open)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) '''
     cur = conn.cursor()
     cur.execute(s, row)
 
+def populate_table_category(conn, row):
+    s = ''' INSERT INTO category(business_id, food, category)
+            VALUES(?, ?, ?) '''
+    cur = conn.cursor()
+    cur.execute(s, row)
 
 json_set = []
 data = []
@@ -64,36 +69,48 @@ columns = ['address', 'attributes', 'attributes.AcceptsInsurance',
 def process_attributes(row):
 
     first_level_keys = [k for k,v in row['attributes'].items() if v == 'True' or v is True]
-    
+
     try:
         good_for_meal = (ast.literal_eval(row['attributes']['GoodForMeal']))
         good_for_meal_keys = [k for k,v in good_for_meal.items() if v == 'True' or v is True]
     except:
-        pass
+        good_for_meal_keys = []
     try:
         business_parking = (ast.literal_eval(row['attributes']['BusinessParking']))
         business_parking_keys = [k + 'parking' for k, v in business_parking.items() if v == 'True' or v is True]
     except:
-        pass
+        business_parking_keys = []
     try:
         ambience = (ast.literal_eval(row['attributes']['Ambience']))
         ambience_keys = [k + 'ambience' for k, v in ambience.items() if v == 'True' or v is True]
     except:
-        pass
+        ambience_keys = []
 
-    return first_level_keys + good_for_meal_keys + business_parking_keys + ambience_keys + first_level_values
-print(data[1]['attributes'])
-print(process_attributes(data[1]))
-print(data[1]['categories'])
+    return first_level_keys + good_for_meal_keys + business_parking_keys + ambience_keys
+#print(data[15600]['attributes'])
+print(process_attributes(data[15600]))
 print(data[1]['hours'])
+
+unique_at = []
+for row in data:
+    try:
+        row_at = [k for k,v in row['attributes'].items()]
+    except:
+        row_at = []
+    unique_at += [at for at in row_at if at not in unique_at]
+
+
+print(data[1]['categories'])
+print((data[1]['categories']).split(", "))
+
 def process_hours(row):
     pass
 
 #print(str([k for k,v in data[1]['attributes'].items() if v is True]).replace('[', '').replace(']', ''))
 
-"""
+
 #Create a tuple with data for each column
-tuple_list = []
+business_tuple_list = []
 i = -1
 for row in data:
     i += 1
@@ -117,20 +134,34 @@ for row in data:
         row['longitude'],
         row['stars'],
         row['review_count'],
-        row['is_open'],
-        attribute,
-        row['categories'],
-        hours
+        row['is_open']
         )
-        tuple_list.append(row_tuple)
+        business_tuple_list.append(row_tuple)
     except Exception as e:
         print(i)
 
-print(tuple_list[0])
-print(tuple_list[3])
+category_list = []
+for row in data:
+    food = 0
+    try:
+        row_list = row['categories'].split(', ')
+        if 'Restaurants' in row_list:
+            food = 1
+            row_list.remove('Restaurants')
+        if 'Food' in row_list:
+            food = 1
+            row_list.remove('Food')
+    except:
+        row_list = []
+    for category in row_list:
+        row_tuple = (row['business_id'], food, category)
+        category_list.append(row_tuple)
+print(len(data))
+print(len(category_list))
 
 conn = create_connection('yelp.db')
 with conn:
-    for row in tuple_list:
-        populate_db(conn, row)
-"""
+    for row in business_tuple_list:
+        populate_table_business(conn, row)
+    for row in category_list:
+        populate_table_category(conn, row)
