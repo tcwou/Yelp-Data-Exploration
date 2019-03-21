@@ -1,3 +1,10 @@
+# Data Visualisation Project Dashboard
+# 1) SQL database statistics, visualization of Relations and Tables
+# 2) Yelp business KPIs Distribution of age of users, distribution of elite users
+# 3) Distribution of businesses. # of reviews/ average rating per City
+# 4) Detailed investigation into Las Vegas (most reviews)
+
+
 # Get number of rows for each table
 s = """ SELECT (SELECT COUNT(*) FROM business),
  (SELECT COUNT(*) FROM user),
@@ -101,11 +108,17 @@ s = """ SELECT elite, COUNT(*), AVG(review_count), AVG(average_stars), AVG(LENGT
 (11, 5729, 1605.5651946238436, 3.837495199860462, 983.906964566242)
 (12, 2868, 1866.6258716875873, 3.7086506276150204, 1086.9926778242677)
 
-# User sign up date per year
-""" SELECT
+# User sign up date per year and review count per uear
+s1 = """ 
+SELECT
 strftime('%Y', yelping_since), COUNT(*)
-FROM user GROUP BY strftime('%Y', yelping_since)"""
-
+FROM user GROUP BY strftime('%Y', yelping_since)
+"""
+s2 = """ 
+SELECT
+strftime('%Y', date), COUNT(*)
+FROM review GROUP BY strftime('%Y', date)
+"""
 ('2004', 81)
 ('2005', 1001)
 ('2006', 5836)
@@ -122,3 +135,57 @@ FROM user GROUP BY strftime('%Y', yelping_since)"""
 ('2017', 120531)
 ('2018', 78016)
 
+# Select all eateries in Las Vegas and combine all categories
+
+s = """ 
+SELECT b.business_id, name, latitude, longitude, stars, review_count, group_concat(category, ", ")
+FROM business b
+JOIN category c ON b.business_id = c.business_id
+WHERE c.food = 1 AND city in ('Las Vegas', 'Henderson', 'North Las Vegas')
+GROUP BY b.business_id
+"""
+
+
+# SELECT 30000 vegas eatery reviews, subquery
+
+s = """ 
+SELECT wr
+FROM (SELECT b.business_id b_id, AVG(stars) b_stars, group_concat(category, ", ") cats
+FROM business b
+JOIN category c ON b.business_id = c.business_id
+WHERE c.food = 1 AND city in ('Las Vegas', 'Henderson', 'North Las Vegas')
+GROUP BY b.business_id)
+JOIN review r ON r.business_id = b_id
+LIMIT 30000
+"""
+
+# select yearly growth
+
+s1 = """ 
+WITH 
+year_new_users as (
+SELECT strftime('%Y', yelping_since) year, COUNT(*) new_users
+FROM user GROUP BY 1
+),
+prev_year_new_users as (
+SELECT *,
+lag(new_users) OVER (ORDER BY year) AS prev_new_users
+FROM year_new_users
+),
+year_new_reviews as (
+SELECT strftime('%Y', date) year, COUNT(*) new_reviews
+FROM review GROUP BY 1
+),
+prev_year_new_reviews as (
+SELECT *,
+lag(new_reviews) OVER (ORDER BY year) AS prev_new_reviews
+FROM year_new_reviews
+)
+
+SELECT r.year, new_users, new_reviews,
+round(100*(new_users-prev_new_users)/prev_new_users,1) as user_growth,
+round(100*(new_reviews-prev_new_reviews)/prev_new_reviews,1) as review_growth
+FROM prev_year_new_users u
+JOIN prev_year_new_reviews r ON r.year = u.year
+ORDER BY 1
+"""
