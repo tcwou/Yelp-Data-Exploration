@@ -7,9 +7,9 @@ I performed interactive data visualization and exploration of the dataset using 
 Finally, I performed sentiment analysis of 35,000 random user reviews of eateries in the dataset using NLP techniques such as lemmatization, TF-IDF, and word2vec. TF-IDF vectorization with tri-grams performed better than word2vec with training on 80% of the dataset. Logistic regression models had a higher accuracy and sensitivity, while gradient boosting models had a higher specificity than logistic regression. 
 
 ## Notebook
-* [Data Visualization](https://github.com/tcwou/Yelp-Data-Exploration/blob/master/Data%20Visualization.ipynb)
-* [Sentiment Analysis](https://github.com/tcwou/Yelp-Data-Exploration/blob/master/Sentiment%20Analysis.ipynb)
-* [SQL Database and Queries](https://github.com/tcwou/Yelp-Data-Exploration/blob/master/SQL%20Database%20and%20Queries.ipynb)
+* [Data Visualization](https://github.com/tcwou/Yelp-Data-Exploration/blob/master/Data%20Visualization.html)
+* [Sentiment Analysis](https://github.com/tcwou/Yelp-Data-Exploration/blob/master/Sentiment%20Analysis.html)
+* [SQL Database and Queries](https://github.com/tcwou/Yelp-Data-Exploration/blob/master/SQL%20Database%20and%20Queries.html)
 
 ### Methods Used
 * Machine Learning
